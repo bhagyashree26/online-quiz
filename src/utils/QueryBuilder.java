@@ -61,8 +61,14 @@ public class QueryBuilder<output>{
     
   }
   
-  public void executeQuery() throws SQLException, NullPointerException{
-	  if( data.size() == 0 ) throw new NullPointerException("No Query Data found, please create Query Before Executing.");
+  public void getData(String condition) throws SQLException{
+	  this.query = "SELECT * FROM " + this.table;
+	  if( condition != null )
+		  this.query += " WHERE " + condition;
+  }
+  
+  public void executeQuery(Boolean getId) throws SQLException, NullPointerException{
+	  if( data.size() == 0 && getId == true ) throw new NullPointerException("No Query Data found, please create Query Before Executing.");
 	  
 	  stmt = con.prepareStatement(this.query, Statement.RETURN_GENERATED_KEYS);
 	  
@@ -78,18 +84,41 @@ public class QueryBuilder<output>{
 	  
 	  rs = stmt.executeQuery();
 	  
-	  ResultSet generatedKeys = stmt.getGeneratedKeys();
-	  if( generatedKeys.next() ){
-		  output.put("Last_Insert_Id", generatedKeys.getString(1));
-		  output.put("Message", "Sucessfully Inserted Data");
+	  if( getId ){
+		  
+		  ResultSet generatedKeys = stmt.getGeneratedKeys();
+		  if( generatedKeys.next() ){
+			  output.put("Last_Insert_Id", generatedKeys.getString(1));
+			  output.put("Message", "Sucessfully Inserted Data");
+		  }
+		  else{
+			  output.put("Message", "Failed to Insert Data");
+		  }
+		  
 	  }
-	  else{
-		  output.put("Message", "Failed to Insert Data");
-	  }
+	  
+	  
+  }
+  
+  public String getQuery(){
+	  return this.query;
   }
   
   public ResultSet getResultSet(){
 	  return rs;
+  }
+  
+  public ArrayList<Map<String, String>> prepareOutput() throws SQLException{
+	  ArrayList<Map<String, String>> outputData = new ArrayList<Map<String, String>>();
+	  while( rs.next() ){
+		  Map<String, String> row = new HashMap<String, String>();
+		  for(String[] s : columns){
+			  row.put(s[0], rs.getString(s[0]));
+		  }
+		  outputData.add(row);
+	  }
+	  
+	  return outputData;
   }
 
   public void closeConnection() throws SQLException{
