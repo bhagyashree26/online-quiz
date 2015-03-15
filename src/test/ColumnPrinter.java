@@ -26,17 +26,16 @@ public class ColumnPrinter extends HttpServlet {
 		// TODO Auto-generated method stub
 		res.setContentType("text/html");
 		String table = req.getParameter("t");
-		ArrayList<String> columns = new ArrayList<String>();
+		ArrayList<String[]> columns = new ArrayList<String[]>();
 		
 		PrintWriter out = res.getWriter();
 		
 		out.write("<html>");
 		out.write("<head><title>" + table + "</title></head>");
-		out.write("<body><ul>");
+		out.write("<body><table border='1' width='100%'>");
 		
 		try{
-			QueryBuilder q = new QueryBuilder(table);
-			q.setColumns();
+			QueryBuilder<Object> q = new QueryBuilder<Object>(table);
 			
 			columns = q.getColumns();
 			
@@ -45,19 +44,24 @@ public class ColumnPrinter extends HttpServlet {
 			
 		}
 		catch(SQLException e){
-			columns.add(e.toString() );
+			String[] error = {e.toString(), "SQL Error"};
+			columns.add( error );
 		}
 		catch(ClassNotFoundException e){
-			columns.add(e.toString() );
+			String[] error = {e.toString(), "SQL Error"};
+			columns.add( error );
 		}
 		catch(Exception e){
-			columns.add(e.toString() );
+			String[] error = {e.toString(), "SQL Error"};
+			columns.add( error );
 		}
 		
-		for(String s : columns){
-			out.write("<li>" + s + "</li>");
+		for(String[] s : columns){
+			out.write("<tr><td>" + s[0] + "</td><td>" + s[1] + "</td></tr>");
 		}
-		out.write("</ul></body>");
+		out.write("</table>");
+		out.write("Length of Column : " + columns.size());
+		out.write("</body>");
 		
 		out.write("</html>");
 		
